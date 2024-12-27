@@ -5,29 +5,24 @@ import { getUser } from '../../api';
 import { Todo } from '../../types/Todo';
 
 interface Props {
-  selectedTodo: Todo | null;
-  setModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
+  todo: Todo;
+  onClose: () => void;
 }
 
-export const TodoModal: React.FC<Props> = ({
-  selectedTodo,
-  setModalVisible,
-}) => {
+export const TodoModal: React.FC<Props> = ({ todo, onClose }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    if (selectedTodo) {
-      getUser(selectedTodo.userId).then(selectedUser => {
-        setUser(selectedUser);
-        setLoading(false);
-      });
-    }
-  }, [selectedTodo]);
+    getUser(todo.userId).then(selectedUser => {
+      setUser(selectedUser);
+      setLoading(false);
+    });
+  }, [todo.userId]);
 
   return (
     <div className="modal is-active" data-cy="modal">
-      <div className="modal-background" />
+      <div className="modal-background" onClick={onClose} />
       {loading ? (
         <Loader />
       ) : (
@@ -37,21 +32,20 @@ export const TodoModal: React.FC<Props> = ({
               className="modal-card-title has-text-weight-medium"
               data-cy="modal-header"
             >
-              {`Todo #${selectedTodo?.id}`}
+              {`Todo #${todo.id}`}
             </div>
-            {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
             <button
               type="button"
               className="delete"
               data-cy="modal-close"
-              onClick={() => setModalVisible(false)}
+              onClick={onClose}
             />
           </header>
           <div className="modal-card-body">
             <p className="block" data-cy="modal-title">
-              {selectedTodo?.title}
+              {todo.title}
             </p>
-            {selectedTodo?.completed ? (
+            {todo.completed ? (
               <p className="block" data-cy="modal-user">
                 <strong className="has-text-success">Done</strong>
                 {' by '}
@@ -70,40 +64,3 @@ export const TodoModal: React.FC<Props> = ({
     </div>
   );
 };
-
-// <div className="modal is-active" data-cy="modal">
-//   <div className="modal-background" />
-//
-//   {true ? (
-//     <Loader />
-//   ) : (
-//     <div className="modal-card">
-//       <header className="modal-card-head">
-//         <div
-//           className="modal-card-title has-text-weight-medium"
-//           data-cy="modal-header"
-//         >
-//           Todo #2
-//         </div>
-//
-//         {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
-//         <button type="button" className="delete" data-cy="modal-close" />
-//       </header>
-//
-//       <div className="modal-card-body">
-//         <p className="block" data-cy="modal-title">
-//           quis ut nam facilis et officia qui
-//         </p>
-//
-//         <p className="block" data-cy="modal-user">
-//           {/* <strong className="has-text-success">Done</strong> */}
-//           <strong className="has-text-danger">Planned</strong>
-//
-//           {' by '}
-//
-//           <a href="mailto:Sincere@april.biz">Leanne Graham</a>
-//         </p>
-//       </div>
-//     </div>
-//   )}
-// </div>;

@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import React, { useEffect, useState } from 'react';
 import 'bulma/css/bulma.css';
 import '@fortawesome/fontawesome-free/css/all.css';
@@ -9,13 +8,14 @@ import { TodoModal } from './components/TodoModal';
 import { Loader } from './components/Loader';
 import { getTodos } from './api';
 import { Todo } from './types/Todo';
+import { Filter } from './types/Filter';
 
 export const App: React.FC = () => {
   const [allTodos, setAllTodos] = useState<Todo[]>([]);
   const [visibleTodos, setVisibleTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [query, setQuery] = useState<string>('');
-  const [filter, setFilter] = useState<string>('');
+  const [filter, setFilter] = useState<Filter>(Filter.All);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
 
@@ -32,15 +32,14 @@ export const App: React.FC = () => {
 
     if (filter) {
       newTodos = newTodos.filter(todo => {
-        if (filter === 'completed') {
-          return todo.completed;
+        switch (filter) {
+          case Filter.Completed:
+            return todo.completed;
+          case Filter.Active:
+            return !todo.completed;
+          default:
+            return true;
         }
-
-        if (filter === 'active') {
-          return !todo.completed;
-        }
-
-        return true;
       });
     }
 
@@ -52,6 +51,16 @@ export const App: React.FC = () => {
 
     setVisibleTodos(newTodos);
   }, [filter, query, allTodos]);
+
+  const handleSelectTodo = (todo: Todo) => {
+    setSelectedTodo(todo);
+    setModalVisible(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalVisible(false);
+    setSelectedTodo(null);
+  };
 
   return (
     <>
@@ -75,10 +84,8 @@ export const App: React.FC = () => {
               ) : (
                 <TodoList
                   todos={visibleTodos}
-                  modalVisible={modalVisible}
-                  setModalVisible={setModalVisible}
+                  onSelectTodo={handleSelectTodo}
                   selectedTodo={selectedTodo}
-                  setSelectedTodo={setSelectedTodo}
                 />
               )}
             </div>
@@ -86,11 +93,8 @@ export const App: React.FC = () => {
         </div>
       </div>
 
-      {modalVisible && (
-        <TodoModal
-          selectedTodo={selectedTodo}
-          setModalVisible={setModalVisible}
-        />
+      {modalVisible && selectedTodo && (
+        <TodoModal todo={selectedTodo} onClose={handleCloseModal} />
       )}
     </>
   );
